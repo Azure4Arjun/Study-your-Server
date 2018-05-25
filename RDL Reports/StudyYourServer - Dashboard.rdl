@@ -112,7 +112,7 @@ FROM sys.dm_os_sys_info
         <CommandText>/* Network Protocols */
 SELECT 'Named Pipes' AS [Protocol]
 	,iif(value_data = 1, 'Yes', 'No') AS isEnabled
-	,'' as [tcpPort]
+	
 FROM sys.dm_server_registry
 WHERE registry_key LIKE '%np'
 	AND value_name = 'Enabled'
@@ -121,23 +121,18 @@ UNION
 
 SELECT 'Shared Memory'
 	,iif(value_data = 1, 'Yes', 'No')
-	,'' as [tcpPort]
+	
 FROM sys.dm_server_registry
 WHERE registry_key LIKE '%sm'
 	AND value_name = 'Enabled'
 
 UNION
 
-SELECT 'TCP/IP'
+SELECT 'TCP/IP'+isnull((SELECT ' - TCP Port: '+convert(nvarchar(10),value_data) FROM sys.dm_server_registry WHERE registry_key LIKE '%IPALL' AND value_name = 'TcpPort'),'')
 	,iif(value_data = 1, 'Yes', 'No')
-	,isnull((SELECT convert(nvarchar(10),value_data) 
-FROM sys.dm_server_registry
-WHERE registry_key LIKE '%IPALL'
-	AND value_name = 'TcpPort'),'')
 FROM sys.dm_server_registry
 WHERE registry_key LIKE '%tcp'
-	AND value_name = 'Enabled'
-</CommandText>
+	AND value_name = 'Enabled'</CommandText>
       </Query>
       <Fields>
         <Field Name="Protocol">
@@ -146,10 +141,6 @@ WHERE registry_key LIKE '%tcp'
         </Field>
         <Field Name="isEnabled">
           <DataField>isEnabled</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="tcpPort">
-          <DataField>tcpPort</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
       </Fields>
@@ -202,6 +193,7 @@ FROM sys.databases db
 INNER JOIN (
 	SELECT f.database_id
 		,volume_mount_point
+		,logical_volume_name
 		,(sum(f.size * 8) / 1024.0) AS dbSizeMB
 		,(total_bytes / 1048576.0) AS totalSpaceMB
 		,(available_bytes / 1048576.0) AS freeSpaceMB
@@ -209,6 +201,7 @@ INNER JOIN (
 	CROSS APPLY sys.dm_os_volume_stats(f.database_id, f.file_id)
 	GROUP BY f.database_id
 		,volume_mount_point
+		,logical_volume_name
 		,total_bytes
 		,available_bytes
 	) DI
@@ -250,6 +243,10 @@ ORDER BY system_DB desc, DBName</CommandText>
         </Field>
         <Field Name="volume_mount_point">
           <DataField>volume_mount_point</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="logical_volume_name">
+          <DataField>logical_volume_name</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
         <Field Name="dbSizeMB">
@@ -298,8 +295,23 @@ ORDER BY p.type_desc, p.name</CommandText>
         <CommandText>SELECT name
 	,value_in_use
 	,description
+	,IIF(name in ('backup compression default'
+,'clr enabled'
+,'cost threshold for parallelism'
+,'fill factor (%)'
+,'lightweight pooling'
+,'max degree of parallelism'
+,'max server memory (MB)'
+,'max worker threads'
+,'min server memory (MB)'
+,'optimize for ad hoc workloads'
+,'priority boost'
+,'remote access'
+,'remote admin connections'
+,'show advanced options'
+,'xp_cmdshell'),1,0) as Important
 FROM sys.configurations
-order by name</CommandText>
+ORDER BY Name</CommandText>
       </Query>
       <Fields>
         <Field Name="name">
@@ -313,6 +325,10 @@ order by name</CommandText>
         <Field Name="description">
           <DataField>description</DataField>
           <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="Important">
+          <DataField>Important</DataField>
+          <rd:TypeName>System.Int32</rd:TypeName>
         </Field>
       </Fields>
     </DataSet>
@@ -336,6 +352,71 @@ ORDER BY creation_time DESC
         </Field>
       </Fields>
     </DataSet>
+    <DataSet Name="TraceFlags">
+      <Query>
+        <DataSourceName>LocalServer</DataSourceName>
+        <CommandText>DBCC TRACESTATUS(-1)
+</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="TraceFlag">
+          <DataField>TraceFlag</DataField>
+          <rd:TypeName>System.Int16</rd:TypeName>
+        </Field>
+        <Field Name="Status">
+          <DataField>Status</DataField>
+          <rd:TypeName>System.Int16</rd:TypeName>
+        </Field>
+        <Field Name="Global">
+          <DataField>Global</DataField>
+          <rd:TypeName>System.Int16</rd:TypeName>
+        </Field>
+        <Field Name="Session">
+          <DataField>Session</DataField>
+          <rd:TypeName>System.Int16</rd:TypeName>
+        </Field>
+      </Fields>
+    </DataSet>
+    <DataSet Name="Manufacturer">
+      <Query>
+        <DataSourceName>LocalServer</DataSourceName>
+        <CommandText>master..xp_readerrorlog 0,1,"Manufacturer"</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="LogDate">
+          <DataField>LogDate</DataField>
+          <rd:TypeName>System.DateTime</rd:TypeName>
+        </Field>
+        <Field Name="ProcessInfo">
+          <DataField>ProcessInfo</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="Text">
+          <DataField>Text</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+      </Fields>
+    </DataSet>
+    <DataSet Name="InstantFileINI">
+      <Query>
+        <DataSourceName>LocalServer</DataSourceName>
+        <CommandText>exec master..xp_readerrorlog 0,1, "Instant file initialization"</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="LogDate">
+          <DataField>LogDate</DataField>
+          <rd:TypeName>System.DateTime</rd:TypeName>
+        </Field>
+        <Field Name="ProcessInfo">
+          <DataField>ProcessInfo</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="Text">
+          <DataField>Text</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+      </Fields>
+    </DataSet>
   </DataSets>
   <ReportSections>
     <ReportSection>
@@ -356,7 +437,7 @@ ORDER BY creation_time DESC
                     </Style>
                   </TextRun>
                   <TextRun>
-                    <Value>Version 1.0</Value>
+                    <Value>Version 1.1</Value>
                     <Style>
                       <FontFamily>Arial</FontFamily>
                       <Color>White</Color>
@@ -369,7 +450,7 @@ ORDER BY creation_time DESC
             <rd:DefaultName>textbox1</rd:DefaultName>
             <Left>0.00049in</Left>
             <Height>0.37444in</Height>
-            <Width>10.91329in</Width>
+            <Width>11.98485in</Width>
             <Style>
               <BackgroundColor>Gray</BackgroundColor>
               <PaddingLeft>2pt</PaddingLeft>
@@ -926,7 +1007,7 @@ ORDER BY creation_time DESC
             <KeepTogether>true</KeepTogether>
             <Top>1.03347in</Top>
             <Left>0.10417in</Left>
-            <Height>1.62847in</Height>
+            <Height>1.75348in</Height>
             <Width>3.5in</Width>
             <ZIndex>3</ZIndex>
             <Style>
@@ -980,7 +1061,7 @@ ORDER BY creation_time DESC
                 </Paragraphs>
                 <rd:DefaultName>Textbox32</rd:DefaultName>
                 <Height>0.16666in</Height>
-                <Width>1.81944in</Width>
+                <Width>1.11111in</Width>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1012,10 +1093,10 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>numberProcessors</rd:DefaultName>
-                <Top>0.2361in</Top>
-                <Left>1.22569in</Left>
+                <Top>0.27776in</Top>
+                <Left>1.21181in</Left>
                 <Height>0.19444in</Height>
-                <Width>1.8889in</Width>
+                <Width>0.93112in</Width>
                 <ZIndex>1</ZIndex>
                 <Style>
                   <Border>
@@ -1049,8 +1130,8 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
-                <Top>0.2361in</Top>
-                <Left>0.125in</Left>
+                <Top>0.27776in</Top>
+                <Left>0.11112in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.11458in</Width>
                 <ZIndex>2</ZIndex>
@@ -1086,10 +1167,10 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>Physical_Memory_GB</rd:DefaultName>
-                <Top>0.43054in</Top>
-                <Left>1.22569in</Left>
+                <Top>0.4722in</Top>
+                <Left>1.21181in</Left>
                 <Height>0.19444in</Height>
-                <Width>1.8889in</Width>
+                <Width>0.93112in</Width>
                 <ZIndex>3</ZIndex>
                 <Style>
                   <Border>
@@ -1122,8 +1203,8 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
-                <Top>0.43054in</Top>
-                <Left>0.125in</Left>
+                <Top>0.4722in</Top>
+                <Left>0.11112in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.11458in</Width>
                 <ZIndex>4</ZIndex>
@@ -1159,8 +1240,8 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
-                <Top>0.62498in</Top>
-                <Left>0.125in</Left>
+                <Top>0.66664in</Top>
+                <Left>0.11112in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.11458in</Width>
                 <ZIndex>5</ZIndex>
@@ -1193,8 +1274,8 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>OS_release</rd:DefaultName>
-                <Top>0.62498in</Top>
-                <Left>1.22569in</Left>
+                <Top>0.66664in</Top>
+                <Left>1.21181in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.8889in</Width>
                 <ZIndex>6</ZIndex>
@@ -1230,8 +1311,8 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
-                <Top>0.8611in</Top>
-                <Left>0.125in</Left>
+                <Top>0.90275in</Top>
+                <Left>0.11112in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.11458in</Width>
                 <ZIndex>7</ZIndex>
@@ -1264,10 +1345,10 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>DataPath</rd:DefaultName>
-                <Top>0.81943in</Top>
-                <Left>1.23959in</Left>
-                <Height>0.25in</Height>
-                <Width>1.875in</Width>
+                <Top>0.90275in</Top>
+                <Left>1.22571in</Left>
+                <Height>0.19444in</Height>
+                <Width>3.0939in</Width>
                 <ZIndex>8</ZIndex>
                 <Style>
                   <Border>
@@ -1301,8 +1382,8 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
-                <Top>1.12498in</Top>
-                <Left>0.125in</Left>
+                <Top>1.11107in</Top>
+                <Left>0.11112in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.11458in</Width>
                 <ZIndex>9</ZIndex>
@@ -1335,10 +1416,10 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>LogPath</rd:DefaultName>
-                <Top>1.09721in</Top>
-                <Left>1.23959in</Left>
-                <Height>0.23611in</Height>
-                <Width>1.875in</Width>
+                <Top>1.09719in</Top>
+                <Left>1.22571in</Left>
+                <Height>0.19444in</Height>
+                <Width>3.0939in</Width>
                 <ZIndex>10</ZIndex>
                 <Style>
                   <Border>
@@ -1351,12 +1432,48 @@ ORDER BY creation_time DESC
                   <PaddingBottom>2pt</PaddingBottom>
                 </Style>
               </Textbox>
+              <Textbox Name="Text">
+                <CanGrow>true</CanGrow>
+                <KeepTogether>true</KeepTogether>
+                <Paragraphs>
+                  <Paragraph>
+                    <TextRuns>
+                      <TextRun>
+                        <Value>=replace(replace(First(Fields!Text.Value, "Manufacturer"),"System",""),"'","")</Value>
+                        <Style>
+                          <FontSize>8pt</FontSize>
+                          <FontWeight>Bold</FontWeight>
+                          <Color>Gray</Color>
+                        </Style>
+                      </TextRun>
+                    </TextRuns>
+                    <Style>
+                      <TextAlign>Right</TextAlign>
+                    </Style>
+                  </Paragraph>
+                </Paragraphs>
+                <rd:DefaultName>Text</rd:DefaultName>
+                <Top>0in</Top>
+                <Left>1.16666in</Left>
+                <Height>0.16666in</Height>
+                <Width>3.13788in</Width>
+                <ZIndex>11</ZIndex>
+                <Style>
+                  <Border>
+                    <Style>None</Style>
+                  </Border>
+                  <PaddingLeft>2pt</PaddingLeft>
+                  <PaddingRight>2pt</PaddingRight>
+                  <PaddingTop>2pt</PaddingTop>
+                  <PaddingBottom>2pt</PaddingBottom>
+                </Style>
+              </Textbox>
             </ReportItems>
             <KeepTogether>true</KeepTogether>
             <Top>1.03347in</Top>
-            <Left>3.64583in</Left>
-            <Height>1.62847in</Height>
-            <Width>3.20361in</Width>
+            <Left>3.65724in</Left>
+            <Height>1.75348in</Height>
+            <Width>4.31961in</Width>
             <ZIndex>4</ZIndex>
             <Style>
               <Border>
@@ -1387,40 +1504,6 @@ ORDER BY creation_time DESC
           </Rectangle>
           <Rectangle Name="Rectangle6">
             <ReportItems>
-              <Textbox Name="Textbox34">
-                <CanGrow>true</CanGrow>
-                <KeepTogether>true</KeepTogether>
-                <Paragraphs>
-                  <Paragraph>
-                    <TextRuns>
-                      <TextRun>
-                        <Value>Configuration info</Value>
-                        <Style>
-                          <FontSize>8pt</FontSize>
-                          <FontWeight>Bold</FontWeight>
-                          <Color>White</Color>
-                        </Style>
-                      </TextRun>
-                    </TextRuns>
-                    <Style>
-                      <TextAlign>Center</TextAlign>
-                    </Style>
-                  </Paragraph>
-                </Paragraphs>
-                <rd:DefaultName>Textbox32</rd:DefaultName>
-                <Height>0.16666in</Height>
-                <Width>1.7257in</Width>
-                <Style>
-                  <Border>
-                    <Style>None</Style>
-                  </Border>
-                  <BackgroundColor>CornflowerBlue</BackgroundColor>
-                  <PaddingLeft>2pt</PaddingLeft>
-                  <PaddingRight>2pt</PaddingRight>
-                  <PaddingTop>2pt</PaddingTop>
-                  <PaddingBottom>2pt</PaddingBottom>
-                </Style>
-              </Textbox>
               <Textbox Name="Textbox30">
                 <CanGrow>true</CanGrow>
                 <KeepTogether>true</KeepTogether>
@@ -1443,10 +1526,9 @@ ORDER BY creation_time DESC
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
                 <Top>0.4722in</Top>
-                <Left>0.02779in</Left>
+                <Left>0.30422in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.19792in</Width>
-                <ZIndex>1</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1480,10 +1562,10 @@ ORDER BY creation_time DESC
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
                 <Top>0.66664in</Top>
-                <Left>0.02779in</Left>
+                <Left>0.30422in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.19792in</Width>
-                <ZIndex>2</ZIndex>
+                <ZIndex>1</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1517,10 +1599,10 @@ ORDER BY creation_time DESC
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
                 <Top>0.86108in</Top>
-                <Left>0.02779in</Left>
+                <Left>0.30422in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.19792in</Width>
-                <ZIndex>3</ZIndex>
+                <ZIndex>2</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1551,10 +1633,10 @@ ORDER BY creation_time DESC
                 </Paragraphs>
                 <rd:DefaultName>AlwaysOn</rd:DefaultName>
                 <Top>0.4722in</Top>
-                <Left>1.2257in</Left>
+                <Left>1.50213in</Left>
                 <Height>0.19444in</Height>
                 <Width>1in</Width>
-                <ZIndex>4</ZIndex>
+                <ZIndex>3</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1585,10 +1667,10 @@ ORDER BY creation_time DESC
                 </Paragraphs>
                 <rd:DefaultName>isClustered</rd:DefaultName>
                 <Top>0.66664in</Top>
-                <Left>1.2257in</Left>
+                <Left>1.50213in</Left>
                 <Height>0.19444in</Height>
                 <Width>1in</Width>
-                <ZIndex>5</ZIndex>
+                <ZIndex>4</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1618,10 +1700,10 @@ ORDER BY creation_time DESC
                 </Paragraphs>
                 <rd:DefaultName>AuthenticationType</rd:DefaultName>
                 <Top>0.86108in</Top>
-                <Left>1.22571in</Left>
+                <Left>1.50214in</Left>
                 <Height>0.19444in</Height>
-                <Width>2.345in</Width>
-                <ZIndex>6</ZIndex>
+                <Width>2.36864in</Width>
+                <ZIndex>5</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1654,11 +1736,11 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>LastStartTime</rd:DefaultName>
-                <Top>1.05552in</Top>
-                <Left>1.22571in</Left>
+                <Top>1.24996in</Top>
+                <Left>1.50214in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.67708in</Width>
-                <ZIndex>7</ZIndex>
+                <ZIndex>6</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1691,11 +1773,11 @@ ORDER BY creation_time DESC
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
-                <Top>1.05552in</Top>
-                <Left>0.02779in</Left>
+                <Top>1.24996in</Top>
+                <Left>0.30422in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.19792in</Width>
-                <ZIndex>8</ZIndex>
+                <ZIndex>7</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1726,10 +1808,10 @@ ORDER BY creation_time DESC
                 </Paragraphs>
                 <rd:DefaultName>isVirtualServer</rd:DefaultName>
                 <Top>0.27776in</Top>
-                <Left>1.22571in</Left>
+                <Left>1.50214in</Left>
                 <Height>0.19444in</Height>
                 <Width>1in</Width>
-                <ZIndex>9</ZIndex>
+                <ZIndex>8</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1763,10 +1845,117 @@ ORDER BY creation_time DESC
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
                 <Top>0.27776in</Top>
-                <Left>0.02779in</Left>
+                <Left>0.30422in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.19792in</Width>
+                <ZIndex>9</ZIndex>
+                <Style>
+                  <Border>
+                    <Style>None</Style>
+                  </Border>
+                  <VerticalAlign>Middle</VerticalAlign>
+                  <PaddingLeft>2pt</PaddingLeft>
+                  <PaddingRight>2pt</PaddingRight>
+                  <PaddingTop>2pt</PaddingTop>
+                  <PaddingBottom>2pt</PaddingBottom>
+                </Style>
+              </Textbox>
+              <Textbox Name="Textbox34">
+                <CanGrow>true</CanGrow>
+                <KeepTogether>true</KeepTogether>
+                <Paragraphs>
+                  <Paragraph>
+                    <TextRuns>
+                      <TextRun>
+                        <Value>Configuration info</Value>
+                        <Style>
+                          <FontSize>8pt</FontSize>
+                          <FontWeight>Bold</FontWeight>
+                          <Color>White</Color>
+                        </Style>
+                      </TextRun>
+                    </TextRuns>
+                    <Style>
+                      <TextAlign>Center</TextAlign>
+                    </Style>
+                  </Paragraph>
+                </Paragraphs>
+                <rd:DefaultName>Textbox32</rd:DefaultName>
+                <Top>0in</Top>
+                <Height>0.16666in</Height>
+                <Width>1.7257in</Width>
                 <ZIndex>10</ZIndex>
+                <Style>
+                  <Border>
+                    <Style>None</Style>
+                  </Border>
+                  <BackgroundColor>CornflowerBlue</BackgroundColor>
+                  <PaddingLeft>2pt</PaddingLeft>
+                  <PaddingRight>2pt</PaddingRight>
+                  <PaddingTop>2pt</PaddingTop>
+                  <PaddingBottom>2pt</PaddingBottom>
+                </Style>
+              </Textbox>
+              <Textbox Name="Text1">
+                <CanGrow>true</CanGrow>
+                <KeepTogether>true</KeepTogether>
+                <Paragraphs>
+                  <Paragraph>
+                    <TextRuns>
+                      <TextRun>
+                        <Value>=replace(left(First(Fields!Text.Value, "InstantFileINI"),InStr(First(Fields!Text.Value, "InstantFileINI"),". For")),"Database Instant File Initialization: ","")</Value>
+                        <Style>
+                          <FontSize>9pt</FontSize>
+                          <Color>Gray</Color>
+                        </Style>
+                      </TextRun>
+                    </TextRuns>
+                    <Style />
+                  </Paragraph>
+                </Paragraphs>
+                <rd:DefaultName>Text1</rd:DefaultName>
+                <Top>1.05552in</Top>
+                <Left>1.50214in</Left>
+                <Height>0.19444in</Height>
+                <Width>1.67708in</Width>
+                <ZIndex>11</ZIndex>
+                <Style>
+                  <Border>
+                    <Style>None</Style>
+                  </Border>
+                  <VerticalAlign>Middle</VerticalAlign>
+                  <PaddingLeft>2pt</PaddingLeft>
+                  <PaddingRight>2pt</PaddingRight>
+                  <PaddingTop>2pt</PaddingTop>
+                  <PaddingBottom>2pt</PaddingBottom>
+                </Style>
+              </Textbox>
+              <Textbox Name="Textbox38">
+                <CanGrow>true</CanGrow>
+                <KeepTogether>true</KeepTogether>
+                <Paragraphs>
+                  <Paragraph>
+                    <TextRuns>
+                      <TextRun>
+                        <Value>Instant File Initialization:</Value>
+                        <Style>
+                          <FontSize>9pt</FontSize>
+                          <FontWeight>Bold</FontWeight>
+                          <Color>Gray</Color>
+                        </Style>
+                      </TextRun>
+                    </TextRuns>
+                    <Style>
+                      <TextAlign>Right</TextAlign>
+                    </Style>
+                  </Paragraph>
+                </Paragraphs>
+                <rd:DefaultName>Textbox19</rd:DefaultName>
+                <Top>1.05552in</Top>
+                <Left>0.02643in</Left>
+                <Height>0.19444in</Height>
+                <Width>1.47571in</Width>
+                <ZIndex>12</ZIndex>
                 <Style>
                   <Border>
                     <Style>None</Style>
@@ -1781,9 +1970,9 @@ ORDER BY creation_time DESC
             </ReportItems>
             <KeepTogether>true</KeepTogether>
             <Top>1.03347in</Top>
-            <Left>6.89111in</Left>
-            <Height>1.62847in</Height>
-            <Width>3.70611in</Width>
+            <Left>8.03123in</Left>
+            <Height>1.75348in</Height>
+            <Width>3.87077in</Width>
             <ZIndex>5</ZIndex>
             <Style>
               <Border>
@@ -1834,7 +2023,7 @@ ORDER BY creation_time DESC
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox4</rd:DefaultName>
-            <Top>2.80083in</Top>
+            <Top>2.85639in</Top>
             <Left>0.125in</Left>
             <Height>0.25in</Height>
             <Width>1.96875in</Width>
@@ -1854,13 +2043,10 @@ ORDER BY creation_time DESC
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>1in</Width>
+                  <Width>2.09723in</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.78125in</Width>
-                </TablixColumn>
-                <TablixColumn>
-                  <Width>1in</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -1941,43 +2127,6 @@ ORDER BY creation_time DESC
                         </Textbox>
                       </CellContents>
                     </TablixCell>
-                    <TablixCell>
-                      <CellContents>
-                        <Textbox Name="Textbox158">
-                          <CanGrow>true</CanGrow>
-                          <KeepTogether>true</KeepTogether>
-                          <Paragraphs>
-                            <Paragraph>
-                              <TextRuns>
-                                <TextRun>
-                                  <Value>TCP Port</Value>
-                                  <Style>
-                                    <FontSize>9pt</FontSize>
-                                    <FontWeight>Bold</FontWeight>
-                                    <Color>White</Color>
-                                  </Style>
-                                </TextRun>
-                              </TextRuns>
-                              <Style>
-                                <TextAlign>Center</TextAlign>
-                              </Style>
-                            </Paragraph>
-                          </Paragraphs>
-                          <rd:DefaultName>Textbox158</rd:DefaultName>
-                          <Style>
-                            <Border>
-                              <Color>LightGrey</Color>
-                              <Style>Solid</Style>
-                            </Border>
-                            <BackgroundColor>CornflowerBlue</BackgroundColor>
-                            <PaddingLeft>2pt</PaddingLeft>
-                            <PaddingRight>2pt</PaddingRight>
-                            <PaddingTop>2pt</PaddingTop>
-                            <PaddingBottom>2pt</PaddingBottom>
-                          </Style>
-                        </Textbox>
-                      </CellContents>
-                    </TablixCell>
                   </TablixCells>
                 </TablixRow>
                 <TablixRow>
@@ -1995,6 +2144,7 @@ ORDER BY creation_time DESC
                                   <Value>=Fields!Protocol.Value</Value>
                                   <Style>
                                     <FontSize>9pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
                                     <Color>Gray</Color>
                                   </Style>
                                 </TextRun>
@@ -2053,48 +2203,12 @@ ORDER BY creation_time DESC
                         </Textbox>
                       </CellContents>
                     </TablixCell>
-                    <TablixCell>
-                      <CellContents>
-                        <Textbox Name="tcpPort">
-                          <CanGrow>true</CanGrow>
-                          <KeepTogether>true</KeepTogether>
-                          <Paragraphs>
-                            <Paragraph>
-                              <TextRuns>
-                                <TextRun>
-                                  <Value>=Fields!tcpPort.Value</Value>
-                                  <Style>
-                                    <FontSize>9pt</FontSize>
-                                    <Color>Gray</Color>
-                                  </Style>
-                                </TextRun>
-                              </TextRuns>
-                              <Style>
-                                <TextAlign>Center</TextAlign>
-                              </Style>
-                            </Paragraph>
-                          </Paragraphs>
-                          <rd:DefaultName>tcpPort</rd:DefaultName>
-                          <Style>
-                            <Border>
-                              <Color>LightGrey</Color>
-                              <Style>Solid</Style>
-                            </Border>
-                            <PaddingLeft>2pt</PaddingLeft>
-                            <PaddingRight>2pt</PaddingRight>
-                            <PaddingTop>2pt</PaddingTop>
-                            <PaddingBottom>2pt</PaddingBottom>
-                          </Style>
-                        </Textbox>
-                      </CellContents>
-                    </TablixCell>
                   </TablixCells>
                 </TablixRow>
               </TablixRows>
             </TablixBody>
             <TablixColumnHierarchy>
               <TablixMembers>
-                <TablixMember />
                 <TablixMember />
                 <TablixMember />
               </TablixMembers>
@@ -2113,7 +2227,7 @@ ORDER BY creation_time DESC
             <Top>3.13417in</Top>
             <Left>0.125in</Left>
             <Height>0.40625in</Height>
-            <Width>2.78125in</Width>
+            <Width>2.87848in</Width>
             <ZIndex>7</ZIndex>
             <Style>
               <Border>
@@ -2143,8 +2257,8 @@ ORDER BY creation_time DESC
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox4</rd:DefaultName>
-            <Top>2.80083in</Top>
-            <Left>3.10959in</Left>
+            <Top>2.85639in</Top>
+            <Left>3.64583in</Left>
             <Height>0.25in</Height>
             <Width>2.24936in</Width>
             <ZIndex>8</ZIndex>
@@ -2163,16 +2277,16 @@ ORDER BY creation_time DESC
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>3.22369in</Width>
+                  <Width>3.18723in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.10733in</Width>
+                  <Width>1.07087in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>0.83381in</Width>
+                  <Width>0.79735in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>2.54562in</Width>
+                  <Width>2.50916in</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -2496,9 +2610,9 @@ ORDER BY creation_time DESC
             </TablixRowHierarchy>
             <DataSetName>InstanceServices</DataSetName>
             <Top>3.13417in</Top>
-            <Left>3.10959in</Left>
+            <Left>3.64583in</Left>
             <Height>0.40625in</Height>
-            <Width>7.71045in</Width>
+            <Width>7.56462in</Width>
             <ZIndex>9</ZIndex>
             <Style>
               <Border>
@@ -2551,6 +2665,9 @@ ORDER BY creation_time DESC
                   <Width>0.73958in</Width>
                 </TablixColumn>
                 <TablixColumn>
+                  <Width>1in</Width>
+                </TablixColumn>
+                <TablixColumn>
                   <Width>1.05557in</Width>
                 </TablixColumn>
                 <TablixColumn>
@@ -2590,6 +2707,43 @@ ORDER BY creation_time DESC
                             </Paragraph>
                           </Paragraphs>
                           <rd:DefaultName>Textbox65</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>CornflowerBlue</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox15">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Volume Label</Value>
+                                  <Style>
+                                    <FontSize>9pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox15</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -2794,6 +2948,42 @@ ORDER BY creation_time DESC
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
+                        <Textbox Name="logical_volume_name">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!logical_volume_name.Value</Value>
+                                  <Style>
+                                    <FontSize>9pt</FontSize>
+                                    <Color>Gray</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>logical_volume_name</rd:DefaultName>
+                          <ToolTip>Best practices suggest to label your volumes according on what is stored in there</ToolTip>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
                         <Textbox Name="isEnabled3">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
@@ -2948,6 +3138,7 @@ ORDER BY creation_time DESC
                 <TablixMember />
                 <TablixMember />
                 <TablixMember />
+                <TablixMember />
               </TablixMembers>
             </TablixColumnHierarchy>
             <TablixRowHierarchy>
@@ -2970,7 +3161,7 @@ ORDER BY creation_time DESC
             <Top>4.2216in</Top>
             <Left>0.125in</Left>
             <Height>0.40625in</Height>
-            <Width>4.85988in</Width>
+            <Width>5.85988in</Width>
             <ZIndex>11</ZIndex>
             <Style>
               <Border>
@@ -3512,11 +3703,13 @@ ORDER BY creation_time DESC
                             </Paragraph>
                           </Paragraphs>
                           <rd:DefaultName>compatibility_level</rd:DefaultName>
+                          <ToolTip>If highlighted, compatibility level is unsupported, consider changing it to a recent one</ToolTip>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <BackgroundColor>=IIf(Fields!compatibility_level.Value&lt;110,"Gold","Transparent")</BackgroundColor>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
@@ -3908,17 +4101,26 @@ ORDER BY creation_time DESC
               </Border>
             </Style>
           </Tablix>
-          <Textbox Name="Textbox10">
+          <Textbox Name="tbConfiguration">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Server Configuration Values</Value>
+                    <Value>Instance Configuration Values </Value>
                     <Style>
                       <FontSize>14pt</FontSize>
                       <FontWeight>Bold</FontWeight>
+                      <TextDecoration>None</TextDecoration>
+                      <Color>DimGray</Color>
+                    </Style>
+                  </TextRun>
+                  <TextRun>
+                    <Value>(More relevant options are highlighted)</Value>
+                    <Style>
+                      <FontSize>8pt</FontSize>
+                      <FontWeight>Normal</FontWeight>
                       <TextDecoration>None</TextDecoration>
                       <Color>DimGray</Color>
                     </Style>
@@ -3929,11 +4131,10 @@ ORDER BY creation_time DESC
                 </Style>
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>Textbox4</rd:DefaultName>
             <Top>7.29483in</Top>
-            <Left>0.10194in</Left>
+            <Left>0.125in</Left>
             <Height>0.25in</Height>
-            <Width>3.52083in</Width>
+            <Width>5.08306in</Width>
             <ZIndex>16</ZIndex>
             <Style>
               <Border>
@@ -4106,6 +4307,7 @@ ORDER BY creation_time DESC
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <BackgroundColor>=iif(Fields!Important.Value=1,"PaleGreen","Transparent")</BackgroundColor>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
@@ -4141,6 +4343,7 @@ ORDER BY creation_time DESC
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <BackgroundColor>=iif(Fields!Important.Value=1,"PaleGreen","Transparent")</BackgroundColor>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
@@ -4176,6 +4379,7 @@ ORDER BY creation_time DESC
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <BackgroundColor>=iif(Fields!Important.Value=1,"PaleGreen","Transparent")</BackgroundColor>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
@@ -4207,7 +4411,7 @@ ORDER BY creation_time DESC
             </TablixRowHierarchy>
             <DataSetName>configurationValues</DataSetName>
             <Top>7.61427in</Top>
-            <Left>0.10194in</Left>
+            <Left>0.10193in</Left>
             <Height>0.40625in</Height>
             <Width>9.655in</Width>
             <ZIndex>17</ZIndex>
@@ -4473,10 +4677,10 @@ ORDER BY creation_time DESC
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>ExecutionTime</rd:DefaultName>
-            <Top>0.40222in</Top>
-            <Left>7.36854in</Left>
+            <Top>0.38833in</Top>
+            <Left>9.12441in</Left>
             <Height>0.21528in</Height>
-            <Width>3.47917in</Width>
+            <Width>2.76042in</Width>
             <ZIndex>20</ZIndex>
             <Style>
               <Border>
@@ -4502,7 +4706,7 @@ ORDER BY creation_time DESC
                       <Value>=Fields!volume_mount_point.Value</Value>
                     </SortExpression>
                   </SortExpressions>
-                  <Label>=Fields!volume_mount_point.Value</Label>
+                  <Label>=Fields!logical_volume_name.Value+" ("+Fields!volume_mount_point.Value+")"</Label>
                 </ChartMember>
               </ChartMembers>
             </ChartCategoryHierarchy>
@@ -4886,7 +5090,7 @@ ORDER BY creation_time DESC
             </ChartNoDataMessage>
             <DataSetName>DatabaseDiskInfo</DataSetName>
             <Top>3.6108in</Top>
-            <Left>5.10591in</Left>
+            <Left>6.10591in</Left>
             <Height>1.83333in</Height>
             <Width>4.68799in</Width>
             <ZIndex>21</ZIndex>
@@ -4997,11 +5201,246 @@ ORDER BY creation_time DESC
               <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
+          <Textbox Name="Textbox13">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Trace Flags Enabled</Value>
+                    <Style>
+                      <FontSize>14pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                      <TextDecoration>None</TextDecoration>
+                      <Color>DimGray</Color>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Left</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>Textbox4</rd:DefaultName>
+            <Top>6.38511in</Top>
+            <Left>4.75359in</Left>
+            <Height>0.25in</Height>
+            <Width>3.52083in</Width>
+            <ZIndex>25</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <VerticalAlign>Middle</VerticalAlign>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Tablix Name="Tablix12">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn>
+                  <Width>1.04659in</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>0.96024in</Width>
+                </TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>0.19792in</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox145">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Flag</Value>
+                                  <Style>
+                                    <FontSize>9pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox140</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>CornflowerBlue</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox133">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Global?</Value>
+                                  <Style>
+                                    <FontSize>9pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox131</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>CornflowerBlue</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+                <TablixRow>
+                  <Height>0.20833in</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="type_desc4">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!TraceFlag.Value</Value>
+                                  <Style>
+                                    <FontSize>8pt</FontSize>
+                                    <Color>Gray</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>type_desc1</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="name4">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=iif(Fields!Global.Value=1,"Yes","No")</Value>
+                                  <Style>
+                                    <FontSize>9pt</FontSize>
+                                    <Color>Gray</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>name</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy>
+              <TablixMembers>
+                <TablixMember />
+                <TablixMember />
+              </TablixMembers>
+            </TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember>
+                  <KeepWithGroup>After</KeepWithGroup>
+                </TablixMember>
+                <TablixMember>
+                  <Group Name="Details8" />
+                </TablixMember>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <NoRowsMessage>No Trace Flags on this instance</NoRowsMessage>
+            <DataSetName>TraceFlags</DataSetName>
+            <Top>6.70455in</Top>
+            <Left>4.75359in</Left>
+            <Height>0.40625in</Height>
+            <Width>2.00683in</Width>
+            <ZIndex>26</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <Color>Gray</Color>
+            </Style>
+          </Tablix>
         </ReportItems>
         <Height>9.1733in</Height>
         <Style />
       </Body>
-      <Width>10.91378in</Width>
+      <Width>11.98534in</Width>
       <Page>
         <InteractiveHeight>0in</InteractiveHeight>
         <InteractiveWidth>8.5in</InteractiveWidth>
