@@ -59,7 +59,10 @@ Database scoped report
 Add the reports to your SSMS and execute them.
 You can check how to do it [here](http://www.sqlguatemala.com/2018/05/add-custom-report-to-ssms.html)
 
-Screenshots:
+### Sample Screenshots:
+-----------------
+
+StudyYourServer - Dashboard:
 
  ![Screenshots](/images/1.JPG)
  
@@ -67,8 +70,8 @@ Screenshots:
  ![Screenshots](/images/2.JPG)
  
  
- ![Screenshots](/images/3.JPG)
- 
- 
  ![Screenshots](/images/4.JPG)
  
+ Study your Server - Database Info:
+
+ ![Screenshots](/images/A.JPG)
