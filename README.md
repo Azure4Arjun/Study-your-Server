@@ -44,9 +44,9 @@ Database scoped report
 
 * Overhall Database information
 * Database settings
-* Files Space usage
+* Space usage
 * Last backup information
-* Filegroup and files information
+* Filegroup and files
 * Orphan users
 * Suspect pages
 
