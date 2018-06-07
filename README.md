@@ -4,7 +4,7 @@
 
 **FROM:** [www.sqlguatemala.com](http://www.sqlguatemala.com/p/free-tools.html#StudyyourServer)
 
-**Version:** 1.1
+**Version:** 1.2
 
 **AUTHOR:** Eduardo Pivaral ([sqlguatemala.com](http://www.sqlguatemala.com))
 
@@ -36,6 +36,19 @@ I want to thank [Carlos Robles](https://twitter.com/dbamastery) ([dbamastery.com
 * Trace Flags enabled
 * Instance configuration values
 * Memory dumps
+* Suspect pages
+
+#### Study your Server - Database Info
+
+Database scoped report
+
+* Overhall Database information
+* Database settings
+* Files Space usage
+* Last backup information
+* Filegroup and files information
+* Orphan users
+* Suspect pages
 
 ----------
 
