@@ -527,7 +527,7 @@ FROM msdb..suspect_pages</CommandText>
                     </Style>
                   </TextRun>
                   <TextRun>
-                    <Value>Version 1.2</Value>
+                    <Value>Version 1.3</Value>
                     <Style>
                       <FontFamily>Arial</FontFamily>
                       <Color>White</Color>
@@ -3229,8 +3229,8 @@ FROM msdb..suspect_pages</CommandText>
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox4</rd:DefaultName>
-            <Top>5.49622in</Top>
-            <Left>0.10417in</Left>
+            <Top>5.35639in</Top>
+            <Left>0.125in</Left>
             <Height>0.25in</Height>
             <Width>1.96875in</Width>
             <ZIndex>11</ZIndex>
@@ -3271,6 +3271,9 @@ FROM msdb..suspect_pages</CommandText>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>1.1875in</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>1.27023in</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -3559,6 +3562,43 @@ FROM msdb..suspect_pages</CommandText>
                             </Paragraph>
                           </Paragraphs>
                           <rd:DefaultName>Textbox124</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>CornflowerBlue</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox4">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Size MB</Value>
+                                  <Style>
+                                    <FontSize>9pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox4</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -3867,6 +3907,346 @@ FROM msdb..suspect_pages</CommandText>
                         </Textbox>
                       </CellContents>
                     </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Chart Name="DataBar1">
+                          <ChartCategoryHierarchy>
+                            <ChartMembers>
+                              <ChartMember>
+                                <Label />
+                              </ChartMember>
+                            </ChartMembers>
+                          </ChartCategoryHierarchy>
+                          <ChartSeriesHierarchy>
+                            <ChartMembers>
+                              <ChartMember>
+                                <Label>db Size MB</Label>
+                              </ChartMember>
+                            </ChartMembers>
+                          </ChartSeriesHierarchy>
+                          <ChartData>
+                            <ChartSeriesCollection>
+                              <ChartSeries Name="dbSizeMB">
+                                <ChartDataPoints>
+                                  <ChartDataPoint>
+                                    <ChartDataPointValues>
+                                      <Y>=Sum(Fields!dbSizeMB.Value)</Y>
+                                    </ChartDataPointValues>
+                                    <ChartDataLabel>
+                                      <Style>
+                                        <FontSize>9pt</FontSize>
+                                        <Format>#,0.00;(#,0.00)</Format>
+                                      </Style>
+                                      <UseValueAsLabel>true</UseValueAsLabel>
+                                      <Visible>true</Visible>
+                                    </ChartDataLabel>
+                                    <Style>
+                                      <Color>=IIf(Fields!DBName.Value="msdb" And Fields!dbSizeMB.Value &gt; 500, "Tomato", "CornflowerBlue")</Color>
+                                    </Style>
+                                    <ChartMarker>
+                                      <Style />
+                                    </ChartMarker>
+                                    <DataElementOutput>Output</DataElementOutput>
+                                  </ChartDataPoint>
+                                </ChartDataPoints>
+                                <Type>Bar</Type>
+                                <Style />
+                                <ChartEmptyPoints>
+                                  <Style />
+                                  <ChartMarker>
+                                    <Style />
+                                  </ChartMarker>
+                                  <ChartDataLabel>
+                                    <Style />
+                                  </ChartDataLabel>
+                                </ChartEmptyPoints>
+                                <ValueAxisName>Primary</ValueAxisName>
+                                <CategoryAxisName>Primary</CategoryAxisName>
+                                <ChartSmartLabel>
+                                  <CalloutLineColor>Black</CalloutLineColor>
+                                  <MinMovingDistance>0pt</MinMovingDistance>
+                                </ChartSmartLabel>
+                              </ChartSeries>
+                            </ChartSeriesCollection>
+                          </ChartData>
+                          <ChartAreas>
+                            <ChartArea Name="Default">
+                              <ChartCategoryAxes>
+                                <ChartAxis Name="Primary">
+                                  <Visible>False</Visible>
+                                  <Style>
+                                    <Border>
+                                      <Color>Gainsboro</Color>
+                                      <Style>None</Style>
+                                    </Border>
+                                    <FontSize>8pt</FontSize>
+                                    <Color>#5c5c5c</Color>
+                                  </Style>
+                                  <ChartAxisTitle>
+                                    <Caption />
+                                    <Style>
+                                      <FontSize>9pt</FontSize>
+                                      <Color>#5c5c5c</Color>
+                                    </Style>
+                                  </ChartAxisTitle>
+                                  <Margin>False</Margin>
+                                  <ChartMajorGridLines>
+                                    <Enabled>False</Enabled>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                      </Border>
+                                    </Style>
+                                  </ChartMajorGridLines>
+                                  <ChartMinorGridLines>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                        <Style>Dotted</Style>
+                                      </Border>
+                                    </Style>
+                                  </ChartMinorGridLines>
+                                  <ChartMajorTickMarks>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                        <Style>None</Style>
+                                      </Border>
+                                    </Style>
+                                  </ChartMajorTickMarks>
+                                  <ChartMinorTickMarks>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                      </Border>
+                                    </Style>
+                                    <Length>0.5</Length>
+                                  </ChartMinorTickMarks>
+                                  <CrossAt>NaN</CrossAt>
+                                  <Minimum>NaN</Minimum>
+                                  <Maximum>NaN</Maximum>
+                                  <ChartAxisScaleBreak>
+                                    <Style />
+                                  </ChartAxisScaleBreak>
+                                </ChartAxis>
+                                <ChartAxis Name="Secondary">
+                                  <Visible>False</Visible>
+                                  <Style>
+                                    <Border>
+                                      <Color>Gainsboro</Color>
+                                      <Style>None</Style>
+                                    </Border>
+                                    <FontSize>8pt</FontSize>
+                                    <Color>#5c5c5c</Color>
+                                  </Style>
+                                  <ChartAxisTitle>
+                                    <Caption />
+                                    <Style>
+                                      <FontSize>9pt</FontSize>
+                                      <Color>#5c5c5c</Color>
+                                    </Style>
+                                  </ChartAxisTitle>
+                                  <Margin>False</Margin>
+                                  <ChartMajorGridLines>
+                                    <Enabled>False</Enabled>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                      </Border>
+                                    </Style>
+                                  </ChartMajorGridLines>
+                                  <ChartMinorGridLines>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                        <Style>Dotted</Style>
+                                      </Border>
+                                    </Style>
+                                  </ChartMinorGridLines>
+                                  <ChartMajorTickMarks>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                        <Style>None</Style>
+                                      </Border>
+                                    </Style>
+                                  </ChartMajorTickMarks>
+                                  <ChartMinorTickMarks>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                      </Border>
+                                    </Style>
+                                    <Length>0.5</Length>
+                                  </ChartMinorTickMarks>
+                                  <CrossAt>NaN</CrossAt>
+                                  <Location>Opposite</Location>
+                                  <Minimum>NaN</Minimum>
+                                  <Maximum>NaN</Maximum>
+                                  <ChartAxisScaleBreak>
+                                    <Style />
+                                  </ChartAxisScaleBreak>
+                                </ChartAxis>
+                              </ChartCategoryAxes>
+                              <ChartValueAxes>
+                                <ChartAxis Name="Primary">
+                                  <Visible>False</Visible>
+                                  <Style>
+                                    <Border>
+                                      <Color>Gainsboro</Color>
+                                      <Style>None</Style>
+                                    </Border>
+                                    <FontSize>8pt</FontSize>
+                                    <Color>#5c5c5c</Color>
+                                  </Style>
+                                  <ChartAxisTitle>
+                                    <Caption />
+                                    <Style>
+                                      <FontSize>9pt</FontSize>
+                                      <Color>#5c5c5c</Color>
+                                    </Style>
+                                  </ChartAxisTitle>
+                                  <ChartMajorGridLines>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                      </Border>
+                                    </Style>
+                                  </ChartMajorGridLines>
+                                  <ChartMinorGridLines>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                        <Style>Dotted</Style>
+                                      </Border>
+                                    </Style>
+                                  </ChartMinorGridLines>
+                                  <ChartMajorTickMarks>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                        <Style>None</Style>
+                                      </Border>
+                                    </Style>
+                                  </ChartMajorTickMarks>
+                                  <ChartMinorTickMarks>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                      </Border>
+                                    </Style>
+                                    <Length>0.5</Length>
+                                  </ChartMinorTickMarks>
+                                  <CrossAt>NaN</CrossAt>
+                                  <Minimum>0</Minimum>
+                                  <Maximum>=Max(Sum(Fields!dbSizeMB.Value), "Tablix8")</Maximum>
+                                  <ChartAxisScaleBreak>
+                                    <Style />
+                                  </ChartAxisScaleBreak>
+                                  <rd:SyncScope>Tablix8</rd:SyncScope>
+                                  <rd:SyncMaximum>true</rd:SyncMaximum>
+                                </ChartAxis>
+                                <ChartAxis Name="Secondary">
+                                  <Visible>False</Visible>
+                                  <Style>
+                                    <Border>
+                                      <Color>Gainsboro</Color>
+                                      <Style>None</Style>
+                                    </Border>
+                                    <FontSize>8pt</FontSize>
+                                    <Color>#5c5c5c</Color>
+                                  </Style>
+                                  <ChartAxisTitle>
+                                    <Caption />
+                                    <Style>
+                                      <FontSize>9pt</FontSize>
+                                      <Color>#5c5c5c</Color>
+                                    </Style>
+                                  </ChartAxisTitle>
+                                  <ChartMajorGridLines>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                      </Border>
+                                    </Style>
+                                  </ChartMajorGridLines>
+                                  <ChartMinorGridLines>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                        <Style>Dotted</Style>
+                                      </Border>
+                                    </Style>
+                                  </ChartMinorGridLines>
+                                  <ChartMajorTickMarks>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                        <Style>None</Style>
+                                      </Border>
+                                    </Style>
+                                  </ChartMajorTickMarks>
+                                  <ChartMinorTickMarks>
+                                    <Style>
+                                      <Border>
+                                        <Color>Gainsboro</Color>
+                                      </Border>
+                                    </Style>
+                                    <Length>0.5</Length>
+                                  </ChartMinorTickMarks>
+                                  <CrossAt>NaN</CrossAt>
+                                  <Location>Opposite</Location>
+                                  <Minimum>NaN</Minimum>
+                                  <Maximum>NaN</Maximum>
+                                  <ChartAxisScaleBreak>
+                                    <Style />
+                                  </ChartAxisScaleBreak>
+                                </ChartAxis>
+                              </ChartValueAxes>
+                              <Style>
+                                <BackgroundColor>#00ffffff</BackgroundColor>
+                                <BackgroundGradientType>None</BackgroundGradientType>
+                              </Style>
+                              <ChartElementPosition>
+                                <Top>10</Top>
+                                <Left>3</Left>
+                                <Height>80</Height>
+                                <Width>96</Width>
+                              </ChartElementPosition>
+                            </ChartArea>
+                          </ChartAreas>
+                          <Palette>BrightPastel</Palette>
+                          <ChartBorderSkin>
+                            <Style>
+                              <BackgroundColor>Gray</BackgroundColor>
+                              <BackgroundGradientType>None</BackgroundGradientType>
+                              <Color>White</Color>
+                            </Style>
+                          </ChartBorderSkin>
+                          <ChartNoDataMessage Name="NoDataMessage">
+                            <Caption>No Data Available</Caption>
+                            <Style>
+                              <BackgroundGradientType>None</BackgroundGradientType>
+                              <FontWeight>Bold</FontWeight>
+                              <TextAlign>General</TextAlign>
+                              <VerticalAlign>Top</VerticalAlign>
+                            </Style>
+                          </ChartNoDataMessage>
+                          <rd:DesignerMode>DataBar</rd:DesignerMode>
+                          <DataSetName>DatabaseDiskInfo</DataSetName>
+                          <ToolTip>=IIf(Fields!DBName.Value="msdb" And Fields!dbSizeMB.Value &gt; 500," MSDB size seems high, does it have maintenance tasks configured?","")</ToolTip>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>=IIf(Fields!DBName.Value="msdb" And Fields!dbSizeMB.Value &gt; 500, "PapayaWhip", "White")</BackgroundColor>
+                            <BackgroundGradientType>None</BackgroundGradientType>
+                          </Style>
+                        </Chart>
+                        <rd:Selected>true</rd:Selected>
+                      </CellContents>
+                    </TablixCell>
                   </TablixCells>
                 </TablixRow>
               </TablixRows>
@@ -3880,6 +4260,11 @@ FROM msdb..suspect_pages</CommandText>
                 <TablixMember />
                 <TablixMember />
                 <TablixMember />
+                <TablixMember>
+                  <Visibility>
+                    <Hidden>true</Hidden>
+                  </Visibility>
+                </TablixMember>
                 <TablixMember />
               </TablixMembers>
             </TablixColumnHierarchy>
@@ -3898,10 +4283,10 @@ FROM msdb..suspect_pages</CommandText>
               </TablixMembers>
             </TablixRowHierarchy>
             <DataSetName>DatabaseDiskInfo</DataSetName>
-            <Top>5.81566in</Top>
-            <Left>0.10417in</Left>
+            <Top>5.67583in</Top>
+            <Left>0.125in</Left>
             <Height>0.40625in</Height>
-            <Width>10.02354in</Width>
+            <Width>11.29377in</Width>
             <ZIndex>12</ZIndex>
             <Style>
               <Border>
@@ -3931,8 +4316,8 @@ FROM msdb..suspect_pages</CommandText>
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox4</rd:DefaultName>
-            <Top>6.38511in</Top>
-            <Left>0.10194in</Left>
+            <Top>6.17488in</Top>
+            <Left>0.12277in</Left>
             <Height>0.25in</Height>
             <Width>3.52083in</Width>
             <ZIndex>13</ZIndex>
@@ -4131,8 +4516,8 @@ FROM msdb..suspect_pages</CommandText>
               </TablixMembers>
             </TablixRowHierarchy>
             <DataSetName>sysadminUsers</DataSetName>
-            <Top>6.70455in</Top>
-            <Left>0.10194in</Left>
+            <Top>6.49432in</Top>
+            <Left>0.12277in</Left>
             <Height>0.40625in</Height>
             <Width>3.76265in</Width>
             <ZIndex>14</ZIndex>
@@ -4172,8 +4557,8 @@ FROM msdb..suspect_pages</CommandText>
                 </Style>
               </Paragraph>
             </Paragraphs>
-            <Top>7.29483in</Top>
-            <Left>0.125in</Left>
+            <Top>7.0846in</Top>
+            <Left>0.14583in</Left>
             <Height>0.25in</Height>
             <Width>5.08306in</Width>
             <ZIndex>15</ZIndex>
@@ -4454,8 +4839,8 @@ FROM msdb..suspect_pages</CommandText>
               </TablixMembers>
             </TablixRowHierarchy>
             <DataSetName>configurationValues</DataSetName>
-            <Top>7.61427in</Top>
-            <Left>0.10193in</Left>
+            <Top>7.40404in</Top>
+            <Left>0.12276in</Left>
             <Height>0.40625in</Height>
             <Width>9.655in</Width>
             <ZIndex>16</ZIndex>
@@ -4488,8 +4873,8 @@ FROM msdb..suspect_pages</CommandText>
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox4</rd:DefaultName>
-            <Top>8.14899in</Top>
-            <Left>0.10417in</Left>
+            <Top>7.93876in</Top>
+            <Left>0.125in</Left>
             <Height>0.25in</Height>
             <Width>3.52083in</Width>
             <ZIndex>17</ZIndex>
@@ -4994,8 +5379,8 @@ FROM msdb..suspect_pages</CommandText>
             </TablixRowHierarchy>
             <NoRowsMessage>Congratulations! You don't have suspect pages</NoRowsMessage>
             <DataSetName>SuspectPages</DataSetName>
-            <Top>8.46844in</Top>
-            <Left>0.125in</Left>
+            <Top>8.25821in</Top>
+            <Left>0.14583in</Left>
             <Height>0.40625in</Height>
             <Width>9.40837in</Width>
             <ZIndex>18</ZIndex>
@@ -5438,10 +5823,10 @@ FROM msdb..suspect_pages</CommandText>
               </Style>
             </ChartNoDataMessage>
             <DataSetName>DatabaseDiskInfo</DataSetName>
-            <Top>3.6108in</Top>
-            <Left>6.10591in</Left>
+            <Top>3.59598in</Top>
+            <Left>7.11431in</Left>
             <Height>2.01041in</Height>
-            <Width>4.87549in</Width>
+            <Width>4.30446in</Width>
             <ZIndex>20</ZIndex>
             <Style>
               <Border>
@@ -5453,8 +5838,8 @@ FROM msdb..suspect_pages</CommandText>
             </Style>
           </Chart>
           <Line Name="Line3">
-            <Top>9.69603in</Top>
-            <Left>0.0997in</Left>
+            <Top>9.4858in</Top>
+            <Left>0.12053in</Left>
             <Height>0in</Height>
             <Width>3.25174in</Width>
             <ZIndex>21</ZIndex>
@@ -5500,8 +5885,8 @@ FROM msdb..suspect_pages</CommandText>
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox2</rd:DefaultName>
-            <Top>9.70992in</Top>
-            <Left>0.44296in</Left>
+            <Top>9.49969in</Top>
+            <Left>0.46379in</Left>
             <Height>0.1875in</Height>
             <Width>2.90625in</Width>
             <ZIndex>22</ZIndex>
@@ -5535,8 +5920,8 @@ FROM msdb..suspect_pages</CommandText>
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox2</rd:DefaultName>
-            <Top>9.70992in</Top>
-            <Left>0.0997in</Left>
+            <Top>9.49969in</Top>
+            <Left>0.12053in</Left>
             <Height>0.1875in</Height>
             <Width>0.34326in</Width>
             <ZIndex>23</ZIndex>
@@ -5572,8 +5957,8 @@ FROM msdb..suspect_pages</CommandText>
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox4</rd:DefaultName>
-            <Top>6.38511in</Top>
-            <Left>4.75359in</Left>
+            <Top>6.17488in</Top>
+            <Left>4.77442in</Left>
             <Height>0.25in</Height>
             <Width>3.52083in</Width>
             <ZIndex>24</ZIndex>
@@ -5773,8 +6158,8 @@ FROM msdb..suspect_pages</CommandText>
             </TablixRowHierarchy>
             <NoRowsMessage>No Trace Flags on this instance</NoRowsMessage>
             <DataSetName>TraceFlags</DataSetName>
-            <Top>6.70455in</Top>
-            <Left>4.75359in</Left>
+            <Top>6.49432in</Top>
+            <Left>4.77442in</Left>
             <Height>0.40625in</Height>
             <Width>2.00683in</Width>
             <ZIndex>25</ZIndex>
@@ -5971,8 +6356,8 @@ FROM msdb..suspect_pages</CommandText>
             </TablixRowHierarchy>
             <NoRowsMessage>Congratulations! You don't have any memory dumps</NoRowsMessage>
             <DataSetName>memoryDumps</DataSetName>
-            <Top>9.24969in</Top>
-            <Left>0.0997in</Left>
+            <Top>9.03946in</Top>
+            <Left>0.12053in</Left>
             <Height>0.40625in</Height>
             <Width>7.31633in</Width>
             <ZIndex>26</ZIndex>
@@ -6005,8 +6390,8 @@ FROM msdb..suspect_pages</CommandText>
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox4</rd:DefaultName>
-            <Top>8.94413in</Top>
-            <Left>0.11333in</Left>
+            <Top>8.7339in</Top>
+            <Left>0.13416in</Left>
             <Height>0.25in</Height>
             <Width>3.52083in</Width>
             <ZIndex>27</ZIndex>
@@ -6022,7 +6407,7 @@ FROM msdb..suspect_pages</CommandText>
             </Style>
           </Textbox>
         </ReportItems>
-        <Height>9.95455in</Height>
+        <Height>9.68719in</Height>
         <Style />
       </Body>
       <Width>11.98534in</Width>
