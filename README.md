@@ -4,7 +4,7 @@
 
 **FROM:** [www.sqlguatemala.com](http://www.sqlguatemala.com/p/free-tools.html#StudyyourServer)
 
-**Version:** 1.2
+**Version:** 1.3
 
 **AUTHOR:** Eduardo Pivaral ([sqlguatemala.com](http://www.sqlguatemala.com))
 
@@ -47,6 +47,8 @@ Database scoped report
 * Space usage
 * Last backup information
 * Filegroup and files
+* Top 10 tables by space
+* User processes
 * Orphan users
 * Suspect pages
 
@@ -66,11 +68,8 @@ StudyYourServer - Dashboard:
 
  ![Screenshots](/images/1.JPG)
  
- 
  ![Screenshots](/images/2.JPG)
  
- 
- ![Screenshots](/images/4.JPG)
  
  Study your Server - Database Info:
 
