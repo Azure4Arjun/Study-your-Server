@@ -109,26 +109,26 @@ WHERE        (database_id = DB_ID())</CommandText>
       <Query>
         <DataSourceName>LocalServer</DataSourceName>
         <CommandText>SELECT DF.name
-,df.type_desc
-,df.physical_name
-,df.state_desc
-,cast((df.size*8)/1024/1024. as numeric(9,4)) as [SizeGB]
-,cast((FILEPROPERTY(df.name,'SpaceUsed')/128.0)/1024.0 as numeric(9,4)) as SpaceUsedGB
-,cast(((df.size*8)/1024/1024.)-(FILEPROPERTY(df.name,'SpaceUsed')/128.0)/1024.0 as numeric(9,4)) as SpaceFreeGB
-,CASE WHEN df.max_size =-1 then 'Unlimited'
-WHEN df.max_size = 0 THEN 'Disabled'
-WHEN df.max_size = 268435456 THEN '2TB LOG'
-ELSE cast(cast((df.max_size*8)/1024/1024. as numeric(9,3)) as nvarchar(15)) +' GB'
+,DF.type_desc
+,DF.physical_name
+,DF.state_desc
+,cast((DF.size*8)/1024/1024. as numeric(9,4)) as [SizeGB]
+,cast((FILEPROPERTY(DF.name,'SpaceUsed')/128.0)/1024.0 as numeric(9,4)) as SpaceUsedGB
+,cast(((DF.size*8)/1024/1024.)-(FILEPROPERTY(DF.name,'SpaceUsed')/128.0)/1024.0 as numeric(9,4)) as SpaceFreeGB
+,CASE WHEN DF.max_size =-1 then 'Unlimited'
+WHEN DF.max_size = 0 THEN 'Disabled'
+WHEN DF.max_size = 268435456 THEN '2TB LOG'
+ELSE cast(cast((DF.max_size*8)/1024/1024. as numeric(9,3)) as nvarchar(15)) +' GB'
 END as [MaxSize]
-,df.is_percent_growth
-,CASE WHEN df.is_percent_growth =1 THEN cast(df.growth as nvarchar(15)) +'%'
-WHEN df.is_percent_growth =0 AND df.growth&gt; 0  THEN cast((df.growth*8)/1024 as nvarchar(15)) +' MB'
+,DF.is_percent_growth
+,CASE WHEN DF.is_percent_growth =1 THEN cast(DF.growth as nvarchar(15)) +'%'
+WHEN DF.is_percent_growth =0 AND DF.growth&gt; 0  THEN cast((DF.growth*8)/1024 as nvarchar(15)) +' MB'
 ELSE 'None'  END as [growthPr]
 ,DF.is_read_only
-,df.is_sparse
-,fg.name fileGName
+,DF.is_sparse
+,FG.name fileGName
 FROM sys.database_files DF
-left join sys.filegroups FG on fg.data_space_id = df.data_space_id
+left join sys.filegroups FG on FG.data_space_id  = DF.data_space_id
 order by fileGName, name </CommandText>
       </Query>
       <Fields>
@@ -235,7 +235,7 @@ CASE bus.type
 END AS TypeAll,
 CONVERT(DECIMAL(10,4), isnull(avg(bus.backup_size),0)/1024/1024/1024) AS AVGbackup_sizeGB
 FROM (SELECT * FROM msdb.dbo.backupset WHERE database_name = db_name(DB_ID())) bus  
-RIGHT JOIN (select 'D' as BTD union select 'I' union select 'L') BT on bus.TYPE = bt.BTD
+RIGHT JOIN (select 'D' as BTD union select 'I' union select 'L') BT on bus.[type] = BT.BTD 
 GROUP BY bus.type, BT.BTD</CommandText>
       </Query>
       <Fields>
@@ -264,7 +264,7 @@ GROUP BY bus.type, BT.BTD</CommandText>
           ,QUOTENAME(SP.[name]) AS PrincipalName 
     FROM sys.sysusers AS SU 
          LEFT JOIN sys.server_principals AS SP 
-             ON SU.[name] = SP.[name] 
+             ON SU.[name] COLLATE DATABASE_DEFAULT = SP.[name] COLLATE DATABASE_DEFAULT
                 AND SP.[type] = 'S' 
     WHERE SU.issqluser = 1          -- Only SQL logins 
           AND NOT SU.[sid] IS NULL  -- Exclude system user 
@@ -899,6 +899,7 @@ order by session_id
                 <Height>0.19444in</Height>
                 <Width>2.11458in</Width>
                 <ZIndex>9</ZIndex>
+                <ToolTip>=iif(First(Fields!collation_name.Value, "DBinfo")&lt;&gt;First(Fields!MasterCollation.Value, "DBinfo"),"Database collation is different from [master] Collation","")</ToolTip>
                 <Style>
                   <Border>
                     <Style>None</Style>
