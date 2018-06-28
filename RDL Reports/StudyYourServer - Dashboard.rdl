@@ -109,30 +109,25 @@ FROM sys.dm_os_sys_info
     <DataSet Name="NetworkProtocols">
       <Query>
         <DataSourceName>LocalServer</DataSourceName>
-        <CommandText>/* Network Protocols */
-SELECT 'Named Pipes' AS [Protocol]
+        <CommandText>SELECT 'Named Pipes' AS [Protocol]
 	,iif(value_data = 1, 'Yes', 'No') AS isEnabled
-	
 FROM sys.dm_server_registry
 WHERE registry_key LIKE '%np'
 	AND value_name = 'Enabled'
-
 UNION
-
 SELECT 'Shared Memory'
 	,iif(value_data = 1, 'Yes', 'No')
 	
 FROM sys.dm_server_registry
 WHERE registry_key LIKE '%sm'
 	AND value_name = 'Enabled'
-
 UNION
-
-SELECT 'TCP/IP'+isnull((SELECT ' - TCP Port: '+convert(nvarchar(10),value_data) FROM sys.dm_server_registry WHERE registry_key LIKE '%IPALL' AND value_name = 'TcpPort'),'')
+SELECT 'TCP/IP'+isnull((SELECT ' - TCP Port: '+replace(replace(cast(value_data as varchar(10)),CHAR(46),''),char(0),'') FROM sys.dm_server_registry WHERE registry_key LIKE '%IPALL' AND value_name = 'TcpPort'),'')
 	,iif(value_data = 1, 'Yes', 'No')
 FROM sys.dm_server_registry
 WHERE registry_key LIKE '%tcp'
-	AND value_name = 'Enabled'</CommandText>
+	AND value_name = 'Enabled'
+</CommandText>
       </Query>
       <Fields>
         <Field Name="Protocol">
@@ -198,7 +193,7 @@ INNER JOIN (
 		,(total_bytes / 1048576.0) AS totalSpaceMB
 		,(available_bytes / 1048576.0) AS freeSpaceMB
 	FROM sys.master_files AS f
-	CROSS APPLY sys.dm_os_volume_stats(f.database_id, f.file_id)
+	OUTER APPLY sys.dm_os_volume_stats(f.database_id, f.file_id)
 	GROUP BY f.database_id
 		,volume_mount_point
 		,logical_volume_name
@@ -507,6 +502,23 @@ FROM msdb..suspect_pages</CommandText>
         </Field>
       </Fields>
     </DataSet>
+    <DataSet Name="LockPages">
+      <Query>
+        <DataSourceName>LocalServer</DataSourceName>
+        <CommandText>SELECT
+MN.locked_page_allocations_kb
+FROM sys.dm_os_memory_nodes MN
+INNER JOIN sys.dm_os_nodes N 
+ON MN.memory_node_id = N.memory_node_id
+WHERE N.node_state_desc &lt;&gt; 'ONLINE DAC'</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="locked_page_allocations_kb">
+          <DataField>locked_page_allocations_kb</DataField>
+          <rd:TypeName>System.Int64</rd:TypeName>
+        </Field>
+      </Fields>
+    </DataSet>
   </DataSets>
   <ReportSections>
     <ReportSection>
@@ -527,7 +539,7 @@ FROM msdb..suspect_pages</CommandText>
                     </Style>
                   </TextRun>
                   <TextRun>
-                    <Value>Version 1.3</Value>
+                    <Value>Version 1.4</Value>
                     <Style>
                       <FontFamily>Arial</FontFamily>
                       <Color>White</Color>
@@ -1745,7 +1757,7 @@ FROM msdb..suspect_pages</CommandText>
                 <Top>0.86108in</Top>
                 <Left>1.50214in</Left>
                 <Height>0.19444in</Height>
-                <Width>2.36864in</Width>
+                <Width>2.45197in</Width>
                 <ZIndex>5</ZIndex>
                 <Style>
                   <Border>
@@ -1779,7 +1791,7 @@ FROM msdb..suspect_pages</CommandText>
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>LastStartTime</rd:DefaultName>
-                <Top>1.24996in</Top>
+                <Top>1.44442in</Top>
                 <Left>1.50214in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.67708in</Width>
@@ -1816,8 +1828,8 @@ FROM msdb..suspect_pages</CommandText>
                   </Paragraph>
                 </Paragraphs>
                 <rd:DefaultName>Textbox19</rd:DefaultName>
-                <Top>1.24996in</Top>
-                <Left>0.30422in</Left>
+                <Top>1.44442in</Top>
+                <Left>0.29032in</Left>
                 <Height>0.19444in</Height>
                 <Width>1.19792in</Width>
                 <ZIndex>7</ZIndex>
@@ -1945,7 +1957,7 @@ FROM msdb..suspect_pages</CommandText>
                   <Paragraph>
                     <TextRuns>
                       <TextRun>
-                        <Value>=replace(left(First(Fields!Text.Value, "InstantFileINI"),InStr(First(Fields!Text.Value, "InstantFileINI"),". For")),"Database Instant File Initialization: ","")</Value>
+                        <Value>=iif(replace(replace(left(First(Fields!Text.Value, "InstantFileINI"),InStr(First(Fields!Text.Value, "InstantFileINI"),". For")),"Database Instant File Initialization: ",""),".","")="enabled","Enabled","Disabled")</Value>
                         <Style>
                           <FontSize>9pt</FontSize>
                           <Color>Gray</Color>
@@ -1957,14 +1969,16 @@ FROM msdb..suspect_pages</CommandText>
                 </Paragraphs>
                 <rd:DefaultName>Text1</rd:DefaultName>
                 <Top>1.05552in</Top>
-                <Left>1.50214in</Left>
+                <Left>1.50213in</Left>
                 <Height>0.19444in</Height>
-                <Width>1.67708in</Width>
+                <Width>1.00001in</Width>
                 <ZIndex>11</ZIndex>
+                <ToolTip>=iif(replace(replace(left(First(Fields!Text.Value, "InstantFileINI"),InStr(First(Fields!Text.Value, "InstantFileINI"),". For")),"Database Instant File Initialization: ",""),".","")="enabled","","Instant file Initialization should be enabled to improve I/O performance")</ToolTip>
                 <Style>
                   <Border>
                     <Style>None</Style>
                   </Border>
+                  <BackgroundColor>=iif(replace(replace(left(First(Fields!Text.Value, "InstantFileINI"),InStr(First(Fields!Text.Value, "InstantFileINI"),". For")),"Database Instant File Initialization: ",""),".","")="enabled","Transparent","PapayaWhip")</BackgroundColor>
                   <VerticalAlign>Middle</VerticalAlign>
                   <PaddingLeft>2pt</PaddingLeft>
                   <PaddingRight>2pt</PaddingRight>
@@ -2009,12 +2023,85 @@ FROM msdb..suspect_pages</CommandText>
                   <PaddingBottom>2pt</PaddingBottom>
                 </Style>
               </Textbox>
+              <Textbox Name="Textbox40">
+                <CanGrow>true</CanGrow>
+                <KeepTogether>true</KeepTogether>
+                <Paragraphs>
+                  <Paragraph>
+                    <TextRuns>
+                      <TextRun>
+                        <Value>Lock Pages in memory:</Value>
+                        <Style>
+                          <FontSize>9pt</FontSize>
+                          <FontWeight>Bold</FontWeight>
+                          <Color>Gray</Color>
+                        </Style>
+                      </TextRun>
+                    </TextRuns>
+                    <Style>
+                      <TextAlign>Right</TextAlign>
+                    </Style>
+                  </Paragraph>
+                </Paragraphs>
+                <rd:DefaultName>Textbox19</rd:DefaultName>
+                <Top>1.24998in</Top>
+                <Left>0.02643in</Left>
+                <Height>0.19444in</Height>
+                <Width>1.47571in</Width>
+                <ZIndex>13</ZIndex>
+                <Style>
+                  <Border>
+                    <Style>None</Style>
+                  </Border>
+                  <VerticalAlign>Middle</VerticalAlign>
+                  <PaddingLeft>2pt</PaddingLeft>
+                  <PaddingRight>2pt</PaddingRight>
+                  <PaddingTop>2pt</PaddingTop>
+                  <PaddingBottom>2pt</PaddingBottom>
+                </Style>
+              </Textbox>
+              <Textbox Name="AlwaysOn2">
+                <CanGrow>true</CanGrow>
+                <KeepTogether>true</KeepTogether>
+                <Paragraphs>
+                  <Paragraph>
+                    <TextRuns>
+                      <TextRun>
+                        <Value>=iif(Sum(Fields!locked_page_allocations_kb.Value, "LockPages")&gt;0,"Enabled","Disabled")</Value>
+                        <Style>
+                          <FontSize>9pt</FontSize>
+                          <Color>Gray</Color>
+                        </Style>
+                      </TextRun>
+                    </TextRuns>
+                    <Style />
+                  </Paragraph>
+                </Paragraphs>
+                <rd:DefaultName>AlwaysOn</rd:DefaultName>
+                <Top>1.24998in</Top>
+                <Left>1.50213in</Left>
+                <Height>0.19444in</Height>
+                <Width>1in</Width>
+                <ZIndex>14</ZIndex>
+                <ToolTip>=iif(Sum(Fields!locked_page_allocations_kb.Value, "LockPages")&gt;0,"","Lock pages in memory should be enabled to improve performance by making less page reads to disk")</ToolTip>
+                <Style>
+                  <Border>
+                    <Style>None</Style>
+                  </Border>
+                  <BackgroundColor>=iif(Sum(Fields!locked_page_allocations_kb.Value, "LockPages")&gt;0,"Transparent","PapayaWhip")</BackgroundColor>
+                  <VerticalAlign>Middle</VerticalAlign>
+                  <PaddingLeft>2pt</PaddingLeft>
+                  <PaddingRight>2pt</PaddingRight>
+                  <PaddingTop>2pt</PaddingTop>
+                  <PaddingBottom>2pt</PaddingBottom>
+                </Style>
+              </Textbox>
             </ReportItems>
             <KeepTogether>true</KeepTogether>
             <Top>1.06472in</Top>
             <Left>8.03123in</Left>
-            <Height>1.72223in</Height>
-            <Width>3.87078in</Width>
+            <Height>1.84723in</Height>
+            <Width>4.07911in</Width>
             <ZIndex>4</ZIndex>
             <Style>
               <Border>
@@ -3191,6 +3278,15 @@ FROM msdb..suspect_pages</CommandText>
                       <GroupExpression>=Fields!totalSpaceMB.Value</GroupExpression>
                       <GroupExpression>=Fields!freeSpaceMB.Value</GroupExpression>
                     </GroupExpressions>
+                    <Filters>
+                      <Filter>
+                        <FilterExpression>=CInt(Fields!totalSpaceMB.Value)</FilterExpression>
+                        <Operator>GreaterThan</Operator>
+                        <FilterValues>
+                          <FilterValue DataType="Integer">0</FilterValue>
+                        </FilterValues>
+                      </Filter>
+                    </Filters>
                   </Group>
                 </TablixMember>
               </TablixMembers>
@@ -5433,6 +5529,15 @@ FROM msdb..suspect_pages</CommandText>
                     <GroupExpressions>
                       <GroupExpression>=Fields!volume_mount_point.Value</GroupExpression>
                     </GroupExpressions>
+                    <Filters>
+                      <Filter>
+                        <FilterExpression>=cint(Fields!totalSpaceMB.Value)</FilterExpression>
+                        <Operator>GreaterThan</Operator>
+                        <FilterValues>
+                          <FilterValue DataType="Integer">0</FilterValue>
+                        </FilterValues>
+                      </Filter>
+                    </Filters>
                   </Group>
                   <SortExpressions>
                     <SortExpression>
@@ -5568,6 +5673,7 @@ FROM msdb..suspect_pages</CommandText>
                         <Color>#5c5c5c</Color>
                       </Style>
                     </ChartAxisTitle>
+                    <IntervalType>Default</IntervalType>
                     <ChartMajorGridLines>
                       <Enabled>False</Enabled>
                       <Style>
@@ -5822,10 +5928,10 @@ FROM msdb..suspect_pages</CommandText>
               </Style>
             </ChartNoDataMessage>
             <DataSetName>DatabaseDiskInfo</DataSetName>
-            <Top>3.59598in</Top>
-            <Left>7.11431in</Left>
+            <Top>3.58209in</Top>
+            <Left>6.11431in</Left>
             <Height>2.01041in</Height>
-            <Width>4.30446in</Width>
+            <Width>5.30446in</Width>
             <ZIndex>20</ZIndex>
             <Style>
               <Border>
@@ -6406,10 +6512,10 @@ FROM msdb..suspect_pages</CommandText>
             </Style>
           </Textbox>
         </ReportItems>
-        <Height>9.68719in</Height>
+        <Height>9.70708in</Height>
         <Style />
       </Body>
-      <Width>11.98534in</Width>
+      <Width>12.11333in</Width>
       <Page>
         <InteractiveHeight>0in</InteractiveHeight>
         <InteractiveWidth>8.5in</InteractiveWidth>

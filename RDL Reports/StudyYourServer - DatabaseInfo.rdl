@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Report MustUnderstand="df" xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner" xmlns:df="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition/defaultfontfamily">
   <df:DefaultFontFamily>Segoe UI</df:DefaultFontFamily>
+  <Author>Eduardo Pivaral (www.sqlguatemala.com)</Author>
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
     <DataSource Name="LocalServer">
@@ -444,7 +445,7 @@ order by session_id
                     </Style>
                   </TextRun>
                   <TextRun>
-                    <Value>Version 1.3</Value>
+                    <Value>Version 1.4</Value>
                     <Style>
                       <FontFamily>Arial</FontFamily>
                       <Color>White</Color>
@@ -1397,7 +1398,7 @@ order by session_id
                 <Top>1.27776in</Top>
                 <Left>1.4876in</Left>
                 <Height>0.19444in</Height>
-                <Width>2.04166in</Width>
+                <Width>2.35242in</Width>
                 <ZIndex>11</ZIndex>
                 <ToolTip>It is advised to run Consistency checks on your databases regularly to avoid data corruption</ToolTip>
                 <Style>
@@ -1454,7 +1455,7 @@ order by session_id
             <Top>0.89181in</Top>
             <Left>3.68228in</Left>
             <Height>1.6389in</Height>
-            <Width>3.63343in</Width>
+            <Width>3.8921in</Width>
             <ZIndex>4</ZIndex>
             <Style>
               <Border>
@@ -4108,7 +4109,7 @@ order by session_id
                       </Style>
                     </ChartAxisTitle>
                     <ChartMajorGridLines>
-                      <Enabled>True</Enabled>
+                      <Enabled>False</Enabled>
                       <Style>
                         <Border>
                           <Color>Gainsboro</Color>
@@ -4377,9 +4378,9 @@ order by session_id
             </ChartNoDataMessage>
             <DataSetName>dataFiles</DataSetName>
             <Top>0.63139in</Top>
-            <Left>7.48757in</Left>
+            <Left>7.69271in</Left>
             <Height>3.32494in</Height>
-            <Width>4.97123in</Width>
+            <Width>4.76609in</Width>
             <ZIndex>18</ZIndex>
             <Style>
               <Border>
@@ -5242,25 +5243,25 @@ order by session_id
                   <Width>1.67555in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>3.30235in</Width>
+                  <Width>2.9886in</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>1.82267in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>0.7684in</Width>
+                  <Width>0.67414in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.16667in</Width>
+                  <Width>1.35808in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.16667in</Width>
+                  <Width>1.67709in</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>1.29167in</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>1.21875in</Width>
-                </TablixColumn>
-                <TablixColumn>
-                  <Width>1.17708in</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -5758,7 +5759,7 @@ order by session_id
                                 <TextRun>
                                   <Value>=Fields!status.Value</Value>
                                   <Style>
-                                    <FontSize>8pt</FontSize>
+                                    <FontSize>7pt</FontSize>
                                     <Format>#,0.00;(#,0.00)</Format>
                                     <Color>Gray</Color>
                                   </Style>
@@ -7166,7 +7167,7 @@ order by session_id
             <Top>5.90131in</Top>
             <Left>0.11285in</Left>
             <Height>0.40625in</Height>
-            <Width>12.71704in</Width>
+            <Width>13.12545in</Width>
             <ZIndex>21</ZIndex>
             <Style>
               <Border>
@@ -7213,7 +7214,7 @@ order by session_id
             </Style>
           </Textbox>
         </ReportItems>
-        <Height>8.30904in</Height>
+        <Height>8.88417in</Height>
         <Style />
       </Body>
       <Width>14.97804in</Width>
