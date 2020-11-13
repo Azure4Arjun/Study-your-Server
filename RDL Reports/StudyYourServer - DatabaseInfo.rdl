@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Report MustUnderstand="df" xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner" xmlns:df="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition/defaultfontfamily">
   <df:DefaultFontFamily>Segoe UI</df:DefaultFontFamily>
   <Author>Eduardo Pivaral (www.sqlguatemala.com)</Author>
@@ -335,14 +335,17 @@ where database_id = DB_ID()</CommandText>
     <DataSet Name="topTables">
       <Query>
         <DataSourceName>LocalServer</DataSourceName>
-        <CommandText>SELECT        TOP (10) t.name, s.name AS schemaN, p.rows, SUM(a.total_pages) * 8 / 1024. AS TotalSpaceMB, SUM(a.used_pages) * 8 / 1024. AS UsedSpaceMB
+        <CommandText>SELECT TOP (10) t.name, 
+s.name AS schemaN, p.rows, 
+(SUM(a.total_pages) * 8 / 1024.0 / 1024.0) AS TotalSpaceGB, 
+(SUM(a.used_pages) * 8 / 1024.0/ 1024.0) AS UsedSpaceGB
 FROM            sys.tables AS t INNER JOIN
                          sys.indexes AS i ON t.object_id = i.object_id INNER JOIN
                          sys.partitions AS p ON i.object_id = p.object_id AND i.index_id = p.index_id INNER JOIN
                          sys.allocation_units AS a ON p.partition_id = a.container_id LEFT OUTER JOIN
                          sys.schemas AS s ON t.schema_id = s.schema_id
 GROUP BY t.name, s.name, p.rows
-ORDER BY TotalSpaceMB DESC</CommandText>
+ORDER BY TotalSpaceGB DESC</CommandText>
       </Query>
       <Fields>
         <Field Name="name">
@@ -357,12 +360,12 @@ ORDER BY TotalSpaceMB DESC</CommandText>
           <DataField>rows</DataField>
           <rd:TypeName>System.Int64</rd:TypeName>
         </Field>
-        <Field Name="TotalSpaceMB">
-          <DataField>TotalSpaceMB</DataField>
+        <Field Name="TotalSpaceGB">
+          <DataField>TotalSpaceGB</DataField>
           <rd:TypeName>System.Decimal</rd:TypeName>
         </Field>
-        <Field Name="UsedSpaceMB">
-          <DataField>UsedSpaceMB</DataField>
+        <Field Name="UsedSpaceGB">
+          <DataField>UsedSpaceGB</DataField>
           <rd:TypeName>System.Decimal</rd:TypeName>
         </Field>
       </Fields>
@@ -445,7 +448,7 @@ order by session_id
                     </Style>
                   </TextRun>
                   <TextRun>
-                    <Value>Version 1.4</Value>
+                    <Value>Version 1.5</Value>
                     <Style>
                       <FontFamily>Arial</FontFamily>
                       <Color>White</Color>
@@ -1095,7 +1098,7 @@ order by session_id
                   <Paragraph>
                     <TextRuns>
                       <TextRun>
-                        <Value>=IIf(First(Fields!is_read_only.Value, "DBinfo")=1,"Yes","No")</Value>
+                        <Value>=First(Fields!is_read_only.Value, "DBinfo")</Value>
                         <Style>
                           <FontSize>9pt</FontSize>
                           <Color>Gray</Color>
@@ -4537,7 +4540,7 @@ order by session_id
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Total Space MB</Value>
+                                  <Value>Total Space GB</Value>
                                   <Style>
                                     <FontSize>9pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -4574,7 +4577,7 @@ order by session_id
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Used Space MB</Value>
+                                  <Value>Used Space GB</Value>
                                   <Style>
                                     <FontSize>9pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -4611,7 +4614,7 @@ order by session_id
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Free Space MB</Value>
+                                  <Value>Free Space GB</Value>
                                   <Style>
                                     <FontSize>9pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -4763,7 +4766,7 @@ order by session_id
                           <ChartSeriesHierarchy>
                             <ChartMembers>
                               <ChartMember>
-                                <Label>Total Space MB</Label>
+                                <Label>Total Space GB</Label>
                               </ChartMember>
                             </ChartMembers>
                           </ChartSeriesHierarchy>
@@ -4773,12 +4776,12 @@ order by session_id
                                 <ChartDataPoints>
                                   <ChartDataPoint>
                                     <ChartDataPointValues>
-                                      <Y>=Sum(Fields!TotalSpaceMB.Value)</Y>
+                                      <Y>=Sum(Fields!TotalSpaceGB.Value)</Y>
                                     </ChartDataPointValues>
                                     <ChartDataLabel>
                                       <Style>
                                         <FontSize>8pt</FontSize>
-                                        <Format>#,0.00;(#,0.00)</Format>
+                                        <Format>#,0.0000;(#,0.0000)</Format>
                                       </Style>
                                       <UseValueAsLabel>true</UseValueAsLabel>
                                       <Visible>true</Visible>
@@ -4982,7 +4985,7 @@ order by session_id
                                   </ChartMinorTickMarks>
                                   <CrossAt>NaN</CrossAt>
                                   <Minimum>0</Minimum>
-                                  <Maximum>=Max(Sum(Fields!TotalSpaceMB.Value), "Tablix10")</Maximum>
+                                  <Maximum>=Max(Sum(Fields!TotalSpaceGB.Value), "Tablix10")</Maximum>
                                   <ChartAxisScaleBreak>
                                     <Style />
                                   </ChartAxisScaleBreak>
@@ -5090,17 +5093,17 @@ order by session_id
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="UsedSpaceMB">
+                        <Textbox Name="UsedSpaceGB">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!UsedSpaceMB.Value</Value>
+                                  <Value>=Fields!UsedSpaceGB.Value</Value>
                                   <Style>
                                     <FontSize>8pt</FontSize>
-                                    <Format>#,0.00;(#,0.00)</Format>
+                                    <Format>#,0.0000;(#,0.0000)</Format>
                                     <Color>Gray</Color>
                                   </Style>
                                 </TextRun>
@@ -5110,7 +5113,7 @@ order by session_id
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>UsedSpaceMB</rd:DefaultName>
+                          <rd:DefaultName>UsedSpaceGB</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -5133,10 +5136,10 @@ order by session_id
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!TotalSpaceMB.Value-Fields!UsedSpaceMB.Value</Value>
+                                  <Value>=Fields!TotalSpaceGB.Value-Fields!UsedSpaceGB.Value</Value>
                                   <Style>
                                     <FontSize>8pt</FontSize>
-                                    <Format>#,0.00;(#,0.00)</Format>
+                                    <Format>#,0.0000;(#,0.0000)</Format>
                                     <Color>Gray</Color>
                                   </Style>
                                 </TextRun>
@@ -5157,6 +5160,7 @@ order by session_id
                             <PaddingBottom>2pt</PaddingBottom>
                           </Style>
                         </Textbox>
+                        <rd:Selected>true</rd:Selected>
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
