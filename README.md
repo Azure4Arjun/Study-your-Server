@@ -4,7 +4,7 @@
 
 **FROM:** [www.sqlguatemala.com](http://www.sqlguatemala.com/p/free-tools.html#StudyyourServer)
 
-**Version:** 1.4
+**Version:** 1.5
 
 **AUTHOR:** Eduardo Pivaral ([sqlguatemala.com](http://www.sqlguatemala.com))
 
